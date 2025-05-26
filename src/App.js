@@ -9,9 +9,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route index path="/" Component={HomePage}/>
         <Route path="/games/:id" Component={GameInfo} />
-        <Route path="*" Component={NotFound} />
       </Routes>
     </BrowserRouter>
   );

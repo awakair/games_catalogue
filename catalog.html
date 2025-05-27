@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История российского геймдизайна - Каталог</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html"> <h1>История российского геймдизайна</h1> </a>
+        </div>
+    
+    
+    <nav class="nav">
+        <ul class="nav-list">
+            <li class="nav-item"><a href="about.html" class="nav-link">О проекте</a></li>
+            <li class="nav-item"><a href="catalog.html" class="nav-link active">Каталог</a></li>
+            <li class="nav-item"><a href="analysis.html" class="nav-link">Анализ</a></li>
+        </ul>
+    </nav>
+    </header>
+    <main class="main">
+        <div class="catalog-header">
+            <div class="search-box">
+                <input type="text" placeholder="Поиск по играм...">
+            </div>
+            <div class="filter-controls">
+                <select id="genre-filter">
+                    <option value="">Все жанры</option>
+                    <option value="RPG">RPG</option>
+                    <option value="Шутер">Шутер</option>
+                    <option value="Стратегия">Стратегия</option>
+                </select>
+                <select id="year-filter">
+                    <option value="">Все годы</option>
+                    <option value="1990s">1990-е</option>
+                    <option value="2000s">2000-е</option>
+                    <option value="2010s">2010-е</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="games-grid" id="games-container">
+            <!-- Игры будут загружены через JavaScript -->
+        </div>
+        
+        <div class="pagination">
+            <!-- Пагинация будет сгенерирована через JavaScript -->
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <p>ИТМО 2025</p>
+    </footer>
+
+    <!-- Модальное окно для деталей игры -->
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <!-- Содержимое будет загружено динамически -->
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

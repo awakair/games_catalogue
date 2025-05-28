@@ -331,7 +331,25 @@ body {
   border-radius: 4px;
 }
 
+/* Блок информации (левый низ) */
 .game-details-info {
+  width: 100%;
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Правый блок (справа от картинки) */
+.game-details-right_info {
+  width: 100%;
+  grid-column: 2;
+  grid-row: 1 / span 2; /* Занимает обе строки 090909099*/
+  color: var(--Black, #000);
+  font-family: Inter;
+  font-size: 1rem; /* Уменьшаем размер шрифта */
+  line-height: 150%;
   display: flex;
   flex-direction: column;
   gap: 1rem;

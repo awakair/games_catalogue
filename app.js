@@ -212,7 +212,7 @@ function displayGameDetails(game) {
   const hasImage = game.images && game.images.length > 0;
   const firstImage = hasImage ? game.images[0] : '';
   
-  const modalContent = `
+    const modalContent = `
     <div class="modal-header">
       <h3 class="modal-title">${game.title}</h3>
       <button class="close-modal">&times;</button>
@@ -223,12 +223,21 @@ function displayGameDetails(game) {
           <div class="game-details-image" style="background-image: url('${firstImage}')"></div>
         ` : ''}
         <div class="game-details-info">
-          ${game.releaseYear ? `<p><span class="meta-label">Год выпуска:</span> ${game.releaseYear}</p>` : ''}
-          ${game.genre ? `<p><span class="meta-label">Жанр:</span> ${game.genre}</p>` : ''}
-          ${game.developer ? `<p><span class="meta-label">Разработчик:</span> ${game.developer}</p>` : ''}
-          ${game.publisher ? `<p><span class="meta-label">Издатель:</span> ${game.publisher}</p>` : ''}
-          ${game.platforms ? `<p><span class="meta-label">Платформы:</span> ${game.platforms}</p>` : ''}
-          ${game.gameMode ? `<p><span class="meta-label">Режим игры:</span> ${game.gameMode}</p>` : ''}
+          <p><span class="meta-label">Наименование:</span> ${game.title}</p>
+          <p><span class="meta-label">Серия:</span> ${game.series}</p>
+          <p><span class="meta-label">Распространение:</span> ${game.distribution}</p>
+          <p><span class="meta-label">Год релиза:</span> ${game.releaseYear}</p>
+          <p><span class="meta-label">Издатель:</span> ${game.publisher}</p>
+          <p><span class="meta-label">Платформы:</span> ${game.platforms}</p>
+          <p><span class="meta-label">Носители:</span> ${game.media}</p>
+          <p><span class="meta-label"> Жанр:</span> ${game.genre}</p>
+        </div>
+        <div class="game-details-right_info">
+          <p><span class="meta-label">Разработчик (студия):</span> ${game.developer}</p>
+          <p><span class="meta-label">Разработчики (команда):</span> ${game.developers}</p>
+          <p><span class="meta-label">Системные требования:</span> ${game.systemRequirements}</p>
+          <p><span class="meta-label">Режим игры:</span> ${game.gameMode}</p>
+          <p><span class="meta-label">Языки:</span> ${game.languages}</p>
         </div>
       </div>
       ${game.description ? `

@@ -135,19 +135,29 @@ function displayGames(games) {
   let html = '';
   
   games.forEach(game => {
-    const firstImage = game.images.length > 0 ? game.images[0] : 'https://via.placeholder.com/300x200?text=No+Image';
+    // Проверяем, есть ли изображения у игры
+    const hasImage = game.images && game.images.length > 0;
+    const firstImage = hasImage ? game.images[0] : '';
     
     html += `
       <div class="game-card">
-        <div class="game-image" style="background-image: url('${firstImage}')"></div>
+        ${hasImage ? `
+          <div class="game-image-container">
+            <img src="${firstImage}" alt="${game.title}" class="game-image" />
+            <div class="game-year-badge">${game.releaseYear || ''}</div>          
+          </div>
+        ` : ''}
+        
         <div class="game-info">
           <h3 class="game-title">${game.title}</h3>
           <div class="game-meta">
-            <span>${game.releaseYear}</span> · 
-            <span>${game.genre}</span> · 
-            <span>${game.developer}</span>
+            ${game.releaseYear && !hasImage ? `<span>${game.releaseYear}</span>` : ''}
+            ${game.genre ? `<span>${game.genre}</span>` : ''}
+            ${game.developer ? `<span>${game.developer}</span>` : ''}
           </div>
-          <p class="game-description">${game.description || 'Описание отсутствует'}</p>
+          ${game.description ? `
+            <p class="game-description">${game.description}</p>
+          ` : ''}
           <a href="#" class="read-more" data-id="${game.id}">Подробнее</a>
         </div>
       </div>
@@ -199,7 +209,8 @@ async function showGameDetails(gameId) {
 
 function displayGameDetails(game) {
   const modal = document.getElementById('game-modal');
-  const firstImage = game.images.length > 0 ? game.images[0] : 'https://via.placeholder.com/600x400?text=No+Image';
+  const hasImage = game.images && game.images.length > 0;
+  const firstImage = hasImage ? game.images[0] : '';
   
   const modalContent = `
     <div class="modal-header">
@@ -208,20 +219,24 @@ function displayGameDetails(game) {
     </div>
     <div class="modal-body">
       <div class="game-details-grid">
-        <div class="game-details-image" style="background-image: url('${firstImage}')"></div>
+        ${hasImage ? `
+          <div class="game-details-image" style="background-image: url('${firstImage}')"></div>
+        ` : ''}
         <div class="game-details-info">
-          <p><span class="meta-label">Год выпуска:</span> ${game.releaseYear}</p>
-          <p><span class="meta-label">Жанр:</span> ${game.genre}</p>
-          <p><span class="meta-label">Разработчик:</span> ${game.developer}</p>
-          <p><span class="meta-label">Издатель:</span> ${game.publisher}</p>
-          <p><span class="meta-label">Платформы:</span> ${game.platforms}</p>
-          <p><span class="meta-label">Режим игры:</span> ${game.gameMode}</p>
+          ${game.releaseYear ? `<p><span class="meta-label">Год выпуска:</span> ${game.releaseYear}</p>` : ''}
+          ${game.genre ? `<p><span class="meta-label">Жанр:</span> ${game.genre}</p>` : ''}
+          ${game.developer ? `<p><span class="meta-label">Разработчик:</span> ${game.developer}</p>` : ''}
+          ${game.publisher ? `<p><span class="meta-label">Издатель:</span> ${game.publisher}</p>` : ''}
+          ${game.platforms ? `<p><span class="meta-label">Платформы:</span> ${game.platforms}</p>` : ''}
+          ${game.gameMode ? `<p><span class="meta-label">Режим игры:</span> ${game.gameMode}</p>` : ''}
         </div>
       </div>
-      <div class="game-description-full" style="margin-top: 1.5rem;">
-        <h4>Описание</h4>
-        <p>${game.description || 'Описание отсутствует'}</p>
-      </div>
+      ${game.description ? `
+        <div class="game-description-full">
+          <h4>Описание</h4>
+          <p>${game.description}</p>
+        </div>
+      ` : ''}
     </div>
   `;
   

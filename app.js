@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Проверяем сохраненную страницу, только если в URL нет параметра page
   if (!urlParams.has('page')) {
-    const savedPage = getPageFromStorage();
+    const savedPage = getStateFromStorage();
     if (savedPage !== null) {
       currentPage = savedPage;
     }

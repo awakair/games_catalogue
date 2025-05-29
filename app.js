@@ -2,6 +2,7 @@
 const API_KEY = 'AIzaSyAPlP2ikyQApSEycb6TjXMm6KFSU1xDLac';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/11LNEc0vjQKZMKjk1oTmP9Iib86TB8Cv2xTOalWNdNTA/';
 const PAGE_SIZE = 9;
+const STORAGE_KEY = 'gameCatalogState'
 
 // Класс Game (как у вас в примере)
 class Game {
@@ -35,95 +36,130 @@ function extractSheetIdFromUrl(url) {
 
 async function getGameFromSheet(sheetUrl, id) {
   const sheetId = extractSheetIdFromUrl(sheetUrl);
-  
+
   if (!sheetId) {
     throw new Error('Invalid Google Sheet URL');
   }
-  
+
   const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A${id}:R${id}?key=${API_KEY}`;
-  
+
   const response = await fetch(apiUrl);
-  
+
   if (!response.ok) {
     throw new Error(`Error fetching data: ${response.statusText}`);
   }
-  
+
   const data = await response.json();
-  
+
   if (!data.values || data.values.length === 0) {
     throw new Error(`Data for row ${id} not found`);
   }
-  
+
   return new Game(id, data.values[0]);
 }
 
 async function getGamesFromSheetPaginated(sheetUrl, pageNumber = 0, pageSize = 10) {
   const sheetId = extractSheetIdFromUrl(sheetUrl);
-  
+
   if (!sheetId) {
     throw new Error('Invalid Google Sheet URL');
   }
-  
+
   const startRow = (pageNumber * pageSize) + 2;
   const endRow = startRow + pageSize - 1;
-  
+
   const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A${startRow}:R${endRow}?key=${API_KEY}`;
-  
+
   const response = await fetch(apiUrl);
-  
+
   if (!response.ok) {
     throw new Error(`Error fetching data: ${response.statusText}`);
   }
-  
+
   const data = await response.json();
-  
+
   if (!data.values || data.values.length === 0) {
     return [];
   }
-  
+
   const games = [];
-  
+
   for (let i = 0; i < data.values.length; i++) {
     const row = data.values[i];
-    
+
     if (!row[1] && !row[15]) {
       continue;
     }
-    
+
     const actualRowNumber = startRow + i;
     games.push(new Game(actualRowNumber, row));
   }
-  
+
   return games;
+}
+
+function saveStateToStorage(page, gameId) {
+  const state = {
+    page: page,
+    gameId: gameId,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function getStateFromStorage() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return null;
+
+  try {
+    const state = JSON.parse(saved);
+    return state.page || null;
+  } catch (e) {
+    console.error('Ошибка чтения из localStorage:', e);
+    return null;
+  }
+}
+
+function clearStorageState() {
+  localStorage.removeItem(STORAGE_KEY);
 }
 
 // Функции для работы с DOM
 function initNavigation() {
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
   const navLinks = document.querySelectorAll('.nav-link');
-  
+
   navLinks.forEach(link => {
     if (link.getAttribute('href') === currentPage) {
       link.classList.add('active');
     }
   });
 }
+let currentPage = 0;
 
+function getCurrentPageFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const page = parseInt(params.get('page')) || 0;
+  return Math.max(0, page);
+}
 // Функции для страницы каталога
-async function loadCatalogPage(page = 0) {
+async function loadCatalogPage(page = currentPage) {
   try {
+    currentPage = page;
+    updateUrlState({ page: currentPage });
+
     const gamesContainer = document.getElementById('games-container');
     gamesContainer.innerHTML = '<p>Загрузка данных...</p>';
-    
+
     const games = await getGamesFromSheetPaginated(SHEET_URL, page, PAGE_SIZE);
-    
+
     if (games.length === 0) {
       gamesContainer.innerHTML = '<p>Игры не найдены.</p>';
       return;
     }
-    
+
     displayGames(games);
-    updatePagination(page);
+    await updatePagination();
   } catch (error) {
     console.error('Ошибка при загрузке игр:', error);
     document.getElementById('games-container').innerHTML = '<p>Произошла ошибка при загрузке данных. Пожалуйста, попробуйте позже.</p>';
@@ -133,12 +169,12 @@ async function loadCatalogPage(page = 0) {
 function displayGames(games) {
   const container = document.getElementById('games-container');
   let html = '';
-  
+
   games.forEach(game => {
     // Проверяем, есть ли изображения у игры
     const hasImage = game.images && game.images.length > 0;
     const firstImage = hasImage ? game.images[0] : '';
-    
+
     html += `
       <div class="game-card">
         ${hasImage ? `
@@ -163,12 +199,12 @@ function displayGames(games) {
       </div>
     `;
   });
-  
+
   container.innerHTML = html;
-  
+
   // Добавляем обработчики событий для кнопок "Подробнее"
   document.querySelectorAll('.read-more').forEach(button => {
-    button.addEventListener('click', function(e) {
+    button.addEventListener('click', function (e) {
       e.preventDefault();
       const gameId = this.getAttribute('data-id');
       showGameDetails(gameId);
@@ -178,9 +214,10 @@ function displayGames(games) {
 
 async function showGameDetails(gameId) {
   try {
+    updateUrlState({ page: currentPage, gameId });
     const modal = document.getElementById('game-modal');
     const modalContent = modal.querySelector('.modal-content');
-    
+
     modalContent.innerHTML = `
       <div class="modal-header">
         <h3 class="modal-title">Загрузка...</h3>
@@ -190,12 +227,12 @@ async function showGameDetails(gameId) {
         <p>Загрузка данных об игре...</p>
       </div>
     `;
-    
+
     modal.style.display = 'block';
-    
+
     const game = await getGameFromSheet(SHEET_URL, gameId);
     displayGameDetails(game);
-    
+
     // Обработчик закрытия модального окна
     modal.querySelector('.close-modal').addEventListener('click', () => {
       modal.style.display = 'none';
@@ -204,6 +241,7 @@ async function showGameDetails(gameId) {
     console.error('Ошибка при загрузке деталей игры:', error);
     const modalBody = document.querySelector('.modal-body');
     modalBody.innerHTML = '<p>Произошла ошибка при загрузке деталей игры.</p>';
+    updateUrlState({ page: currentPage });
   }
 }
 
@@ -211,7 +249,7 @@ function displayGameDetails(game) {
   const modal = document.getElementById('game-modal');
   const hasImage = game.images && game.images.length > 0;
   const firstImage = hasImage ? game.images[0] : '';
-  
+
   const modalContent = `
     <div class="modal-header">
       <h3 class="modal-title">${game.title}</h3>
@@ -223,12 +261,21 @@ function displayGameDetails(game) {
           <div class="game-details-image" style="background-image: url('${firstImage}')"></div>
         ` : ''}
         <div class="game-details-info">
-          ${game.releaseYear ? `<p><span class="meta-label">Год выпуска:</span> ${game.releaseYear}</p>` : ''}
-          ${game.genre ? `<p><span class="meta-label">Жанр:</span> ${game.genre}</p>` : ''}
-          ${game.developer ? `<p><span class="meta-label">Разработчик:</span> ${game.developer}</p>` : ''}
-          ${game.publisher ? `<p><span class="meta-label">Издатель:</span> ${game.publisher}</p>` : ''}
-          ${game.platforms ? `<p><span class="meta-label">Платформы:</span> ${game.platforms}</p>` : ''}
-          ${game.gameMode ? `<p><span class="meta-label">Режим игры:</span> ${game.gameMode}</p>` : ''}
+          <p><span class="meta-label">Наименование:</span> ${game.title}</p>
+          <p><span class="meta-label">Серия:</span> ${game.series}</p>
+          <p><span class="meta-label">Распространение:</span> ${game.distribution}</p>
+          <p><span class="meta-label">Год релиза:</span> ${game.releaseYear}</p>
+          <p><span class="meta-label">Издатель:</span> ${game.publisher}</p>
+          <p><span class="meta-label">Платформы:</span> ${game.platforms}</p>
+          <p><span class="meta-label">Носители:</span> ${game.media}</p>
+          <p><span class="meta-label"> Жанр:</span> ${game.genre}</p>
+        </div>
+        <div class="game-details-right_info">
+          <p><span class="meta-label">Разработчик (студия):</span> ${game.developer}</p>
+          <p><span class="meta-label">Разработчики (команда):</span> ${game.developers}</p>
+          <p><span class="meta-label">Системные требования:</span> ${game.systemRequirements}</p>
+          <p><span class="meta-label">Режим игры:</span> ${game.gameMode}</p>
+          <p><span class="meta-label">Языки:</span> ${game.languages}</p>
         </div>
       </div>
       ${game.description ? `
@@ -239,12 +286,19 @@ function displayGameDetails(game) {
       ` : ''}
     </div>
   `;
-  
+
   modal.querySelector('.modal-content').innerHTML = modalContent;
-  
+
   // Обработчик закрытия модального окна
   modal.querySelector('.close-modal').addEventListener('click', () => {
     modal.style.display = 'none';
+    updateURL(getPageFromURL(), null);
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+      updateURL(getPageFromURL(), null);
+    }
   });
 }
 
@@ -252,16 +306,16 @@ async function getTotalGamesCount() {
   try {
     const sheetId = extractSheetIdFromUrl(SHEET_URL);
     if (!sheetId) throw new Error('Invalid Google Sheet URL');
-    
+
     // Получаем только первый столбец, чтобы определить количество строк
     const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:A?key=${API_KEY}`;
-    
+
     const response = await fetch(apiUrl);
     if (!response.ok) throw new Error(`Error fetching data: ${response.statusText}`);
-    
+
     const data = await response.json();
     if (!data.values) return 0;
-    
+
     // Первая строка - заголовки, поэтому общее количество игр = количество строк - 1
     return data.values.length - 1;
   } catch (error) {
@@ -274,35 +328,35 @@ async function getTotalGamesCount() {
  * Обновляет пагинацию с учетом общего количества страниц
  * @param {number} currentPage - Текущая страница (0-based)
  */
-async function updatePagination(currentPage) {
+async function updatePagination() {
   const pagination = document.querySelector('.pagination');
   if (!pagination) return;
-  
+
   // Получаем общее количество игр
   const totalGames = await getTotalGamesCount();
   const totalPages = Math.ceil(totalGames / PAGE_SIZE);
-  
+
   // Если нет данных или всего одна страница - скрываем пагинацию
   if (totalPages <= 1) {
     pagination.style.display = 'none';
     return;
   }
-  
+
   pagination.style.display = 'flex';
-  
+
   let html = `
     <button class="prev" ${currentPage === 0 ? 'disabled' : ''}>&lt;</button>
   `;
-  
+
   // Всегда показываем первую страницу
   html += `
     <button class="${currentPage === 0 ? 'active' : ''}">1</button>
   `;
-  
+
   // Определяем диапазон страниц для отображения
   let startPage = Math.max(1, currentPage - 1);
   let endPage = Math.min(totalPages - 1, currentPage + 2);
-  
+
   // Если текущая страница в начале - показываем больше страниц справа
   if (currentPage < 3) {
     endPage = Math.min(totalPages - 1, 4);
@@ -311,54 +365,56 @@ async function updatePagination(currentPage) {
   else if (currentPage > totalPages - 4) {
     startPage = Math.max(1, totalPages - 5);
   }
-  
+
   // Добавляем многоточие после первой страницы, если нужно
   if (startPage > 1) {
     html += `<span class="ellipsis">...</span>`;
   }
-  
+
   // Добавляем средние страницы
   for (let i = startPage; i < endPage; i++) {
     html += `
       <button class="${i === currentPage ? 'active' : ''}">${i + 1}</button>
     `;
   }
-  
+
   // Добавляем многоточие перед последней страницей, если нужно
   if (endPage < totalPages - 1) {
     html += `<span class="ellipsis">...</span>`;
   }
-  
+
   // Добавляем последнюю страницу, если она не первая
   if (totalPages > 1) {
     html += `
       <button class="${currentPage === totalPages - 1 ? 'active' : ''}">${totalPages}</button>
     `;
   }
-  
+
   html += `
     <button class="next" ${currentPage === totalPages - 1 ? 'disabled' : ''}>&gt;</button>
   `;
-  
+
   pagination.innerHTML = html;
-  
+
   // Обработчики для кнопок пагинации
-  document.querySelector('.prev')?.addEventListener('click', () => {
+  document.querySelector('.prev')?.addEventListener('click', (e) => {
+    e.preventDefault();
     if (currentPage > 0) {
       loadCatalogPage(currentPage - 1);
     }
   });
-  
-  document.querySelector('.next')?.addEventListener('click', () => {
+
+  document.querySelector('.next')?.addEventListener('click', (e) => {
+    e.preventDefault();
     if (currentPage < totalPages - 1) {
       loadCatalogPage(currentPage + 1);
     }
   });
-  
-  // Обработчики для номеров страниц
+
   document.querySelectorAll('.pagination button:not(.prev):not(.next)').forEach(button => {
-    const pageNum = parseInt(button.textContent) - 1;
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const pageNum = parseInt(button.textContent) - 1;
       if (pageNum !== currentPage) {
         loadCatalogPage(pageNum);
       }
@@ -366,39 +422,110 @@ async function updatePagination(currentPage) {
   });
 }
 
+window.addEventListener('popstate', (event) => {
+  if (event.state) {
+    const { page, gameId } = event.state;
+    currentPage = page !== undefined ? page : getCurrentPageFromURL();
+
+    if (gameId) {
+      showGameDetails(gameId);
+    } else {
+      loadCatalogPage(currentPage);
+    }
+  } else {
+    currentPage = getCurrentPageFromURL();
+    loadCatalogPage(currentPage);
+  }
+
+  // Всегда сохраняем текущее состояние
+  saveStateToStorage(currentPage, getGameIdFromURL());
+});
+
 // Функции для модального окна с деталями игры
 
 // Инициализация страницы
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
-  
-  // Инициализация страницы каталога
-  if (document.getElementById('games-container')) {
-    loadCatalogPage(0);
-    
-    // Обработчик для поиска
-    document.querySelector('.search-box input')?.addEventListener('input', function() {
-      // В реальном приложении здесь должна быть логика фильтрации
-      console.log('Поиск:', this.value);
-    });
-    
-    // Обработчики для фильтров
-    document.getElementById('genre-filter')?.addEventListener('change', function() {
-      console.log('Выбран жанр:', this.value);
-    });
-    
-    document.getElementById('year-filter')?.addEventListener('change', function() {
-      console.log('Выбран год:', this.value);
-    });
+
+  // Всегда получаем текущую страницу из URL или localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  currentPage = getCurrentPageFromURL();
+
+  // Проверяем сохраненную страницу, только если в URL нет параметра page
+  if (!urlParams.has('page')) {
+    const savedPage = getPageFromStorage();
+    if (savedPage !== null) {
+      currentPage = savedPage;
+    }
   }
-  
-  // Инициализация модального окна (если есть на странице)
+
+  // Всегда загружаем каталог, даже если в URL есть game
+  loadCatalogPage(currentPage);
+
+  // Если есть параметр game в URL - показываем модальное окно
+  const gameId = urlParams.get('game');
+  if (gameId) {
+    // Небольшая задержка, чтобы каталог успел загрузиться
+    setTimeout(() => showGameDetails(gameId), 100);
+  }
+
+  // Инициализация модального окна
   const modal = document.getElementById('game-modal');
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        modal.style.display = 'none';
+        closeModal();
       }
     });
   }
 });
+
+function updateURL(page = null, gameId = null) {
+  const params = new URLSearchParams(window.location.search);
+
+  if (page !== null) {
+    params.set('page', page);
+  }
+
+  if (gameId !== null) {
+    params.set('game', gameId);
+  } else {
+    params.delete('game');
+  }
+
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  window.history.pushState({}, '', newUrl);
+}
+
+// Обновляем URL с сохранением текущей страницы
+function updateUrlState({ page, gameId }) {
+  const params = new URLSearchParams(window.location.search);
+
+  if (page !== undefined) {
+    params.set('page', page);
+    currentPage = page;
+    saveStateToStorage(page);
+  }
+
+  if (gameId !== undefined) {
+    params.set('game', gameId);
+  } else {
+    params.delete('game');
+  }
+
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  window.history.pushState({ page }, '', newUrl);
+}
+
+function getGameIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('game');
+}
+
+
+function closeModal() {
+  const modal = document.getElementById('game-modal');
+  modal.style.display = 'none';
+  // Обновляем URL, удаляя параметр game
+  updateUrlState({ page: currentPage });
+}

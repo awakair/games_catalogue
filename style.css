@@ -1,0 +1,445 @@
+/* Общие стили */
+:root {
+  --primary-color: white;
+  --secondary-color: black;
+  --accent-color: #e74c3c;
+  --light-color: #ecf0f1;
+  --dark-color: white;
+  --text-color: black;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: white;
+  color: black;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Шапка */
+.header {
+  background-color: var(--primary-color);
+  color: black;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.header h1 {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.header a {
+  text-decoration: none;
+  color: black;
+}
+
+/* Навигация */
+.nav {
+  background-color: white;
+  padding: 0.8rem 0;
+   border-bottom: 1px solid gray;
+}
+
+.nav-list {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.nav-item {
+  color: white;
+  margin: 0 1rem;
+}
+
+.nav-link {
+  background-color: gray;
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  display: flex;
+  width: 260px;
+  height: 40px;
+  padding: 0px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.nav a {
+  color: white;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+  background-color: var(--secondary-color);
+}
+
+/* Основное содержимое */
+.main {
+  flex: 1;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 20px;
+  width: 100%;
+}
+
+/* Подвал */
+.footer {
+  background-color: gray;
+  color: white;
+  text-align: center;
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+}
+
+/* Стили для страницы "О проекте" */
+.about-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Стили для страницы "Каталог" */
+.catalog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-controls select {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 1rem;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.game-card {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-5px);
+}
+
+.game-image {
+  height: 180px;
+  background-color: #eee;
+  background-size: cover;
+  background-position: center;
+}
+
+.game-image-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.game-info {
+  padding: 1.2rem;
+}
+
+.game-title {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: black;
+}
+
+.game-meta {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.8rem;
+}
+
+.game-description {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.read-more {
+  color: var(--secondary-color);
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pagination button:hover {
+  background-color: #f0f0f0;
+}
+
+.pagination button.active {
+  background-color: var(--secondary-color);
+  color: white;
+  border-color: var(--secondary-color);
+}
+
+/* Стили для страницы "Анализ" */
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.analysis-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: black;
+}
+
+/* Модальное окно */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background-color: white;
+  margin: 2rem auto;
+  max-width: 800px;
+  width: 90%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  padding: 1.5rem;
+  background-color: var(--primary-color);
+  color: black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  color: black;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.game-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.game-details-image {
+  height: 300px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+}
+
+/* Блок информации (левый низ) */
+.game-details-info {
+  width: 100%;
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Правый блок (справа от картинки) */
+.game-details-right_info {
+  width: 100%;
+  grid-column: 2;
+  grid-row: 1 / span 2; /* Занимает обе строки 090909099*/
+  color: var(--Black, #000);
+  font-family: Inter;
+  font-size: 1rem; /* Уменьшаем размер шрифта */
+  line-height: 150%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.game-details-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.meta-label {
+  font-weight: bold;
+  color: black;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .games-grid, .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .game-details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .game-details-meta {
+    grid-template-columns: 1fr;
+  }
+}
+.main-image {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Убираем отступы у main для полной ширины */
+.full-width-main {
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.analysis-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.analysis-card:hover {
+  transform: translateY(-5px);
+}
+
+.download-btn {
+  display: inline-block;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-top: 15px;
+  transition: background-color 0.3s;
+}
+
+.download-btn:hover {
+  background-color: #45a049;
+}
+
+.analysis-title {
+  margin-top: 0;
+  color: #333;
+}
+
+.analysis-year, .analysis-genre {
+  color: #666;
+  font-size: 0.9em;
+  margin: 5px 0;
+}
+
+.analysis-description {
+  color: #444;
+  line-height: 1.5;
+}

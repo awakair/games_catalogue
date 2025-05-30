@@ -394,3 +394,52 @@ body {
   margin: 0;
 }
 
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.analysis-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.analysis-card:hover {
+  transform: translateY(-5px);
+}
+
+.download-btn {
+  display: inline-block;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-top: 15px;
+  transition: background-color 0.3s;
+}
+
+.download-btn:hover {
+  background-color: #45a049;
+}
+
+.analysis-title {
+  margin-top: 0;
+  color: #333;
+}
+
+.analysis-year, .analysis-genre {
+  color: #666;
+  font-size: 0.9em;
+  margin: 5px 0;
+}
+
+.analysis-description {
+  color: #444;
+  line-height: 1.5;
+}

@@ -25,6 +25,7 @@ class Game {
     this.description = rowData[15] || '';
     this.recordAuthor = rowData[16] || '';
     this.images = rowData[17] ? rowData[17].split('\n').filter(url => url.trim()) : [];
+    this.analysisLink = rowData[18] || '';
   }
 }
 
@@ -140,7 +141,7 @@ let currentPage = 0;
 function getCurrentPageFromURL() {
   const params = new URLSearchParams(window.location.search);
   const page = parseInt(params.get('page')) || 0;
-  return Math.max(0, page);
+  return Math.max(1, page) - 1;
 }
 // Функции для страницы каталога
 async function loadCatalogPage(page = currentPage) {
@@ -447,36 +448,39 @@ window.addEventListener('popstate', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
 
-  // Всегда получаем текущую страницу из URL или localStorage
-  const urlParams = new URLSearchParams(window.location.search);
-  currentPage = getCurrentPageFromURL();
+  // Проверяем, на какой странице находимся
+  const currentPath = window.location.pathname.split('/').pop();
+  
+  if (currentPath === 'analysis.html') {
+    // Инициализация страницы анализа
+    initAnalysisPage();
+  } else if (currentPath === 'catalog.html') {
+    // Инициализация страницы каталога
+    const urlParams = new URLSearchParams(window.location.search);
+    currentPage = getCurrentPageFromURL();
 
-  // Проверяем сохраненную страницу, только если в URL нет параметра page
-  if (!urlParams.has('page')) {
-    const savedPage = getStateFromStorage();
-    if (savedPage !== null) {
-      currentPage = savedPage;
-    }
-  }
-
-  // Всегда загружаем каталог, даже если в URL есть game
-  loadCatalogPage(currentPage);
-
-  // Если есть параметр game в URL - показываем модальное окно
-  const gameId = urlParams.get('game');
-  if (gameId) {
-    // Небольшая задержка, чтобы каталог успел загрузиться
-    setTimeout(() => showGameDetails(gameId), 100);
-  }
-
-  // Инициализация модального окна
-  const modal = document.getElementById('game-modal');
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal();
+    if (!urlParams.has('page')) {
+      const savedPage = getStateFromStorage();
+      if (savedPage !== null) {
+        currentPage = savedPage;
       }
-    });
+    }
+
+    loadCatalogPage(currentPage);
+
+    const gameId = urlParams.get('game');
+    if (gameId) {
+      setTimeout(() => showGameDetails(gameId), 100);
+    }
+
+    const modal = document.getElementById('game-modal');
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+    }
   }
 });
 
@@ -502,7 +506,7 @@ function updateUrlState({ page, gameId }) {
   const params = new URLSearchParams(window.location.search);
 
   if (page !== undefined) {
-    params.set('page', page);
+    params.set('page', page + 1);
     currentPage = page;
     saveStateToStorage(page);
   }
@@ -528,4 +532,64 @@ function closeModal() {
   modal.style.display = 'none';
   // Обновляем URL, удаляя параметр game
   updateUrlState({ page: currentPage });
+}
+
+async function getGamesWithAnalysis(sheetUrl) {
+  const sheetId = extractSheetIdFromUrl(sheetUrl);
+  if (!sheetId) throw new Error('Invalid Google Sheet URL');
+
+  // Загружаем данные включая колонку S (анализ)
+  const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A2:S?key=${API_KEY}`;
+
+  const response = await fetch(apiUrl);
+  if (!response.ok) throw new Error(`Error fetching data: ${response.statusText}`);
+
+  const data = await response.json();
+  if (!data.values || data.values.length === 0) return [];
+
+  const games = [];
+  for (let i = 0; i < data.values.length; i++) {
+    const row = data.values[i];
+    // Проверяем, есть ли ссылка на анализ (колонка S)
+    if (row[18] && row[18].trim() !== '') {
+      const actualRowNumber = i + 2; // +2 потому что A2 и нумерация с 1
+      games.push(new Game(actualRowNumber, row));
+    }
+  }
+
+  return games;
+}
+
+function displayAnalysisCards(games) {
+  const container = document.getElementById('analysis-container');
+  container.innerHTML = ''; // Очищаем контейнер
+
+  games.forEach(game => {
+    const card = document.createElement('div');
+    card.className = 'analysis-card';
+    
+    card.innerHTML = `
+      <h3 class="analysis-title">${game.title}</h3>
+      ${game.releaseYear ? `<p class="analysis-year">${game.releaseYear}</p>` : ''}
+      ${game.genre ? `<p class="analysis-genre">${game.genre}</p>` : ''}
+      ${game.description ? `<p class="analysis-description">${game.description}</p>` : ''}
+      <a href="${game.analysisLink}" class="download-btn" download>Скачать анализ</a>
+    `;
+    
+    container.appendChild(card);
+  });
+}
+
+async function initAnalysisPage() {
+  try {
+    const games = await getGamesWithAnalysis(SHEET_URL);
+    if (games.length === 0) {
+      document.getElementById('analysis-container').innerHTML = '<p>Аналитические материалы не найдены.</p>';
+      return;
+    }
+    displayAnalysisCards(games);
+  } catch (error) {
+    console.error('Ошибка при загрузке аналитических материалов:', error);
+    document.getElementById('analysis-container').innerHTML = '<p>Произошла ошибка при загрузке данных. Пожалуйста, попробуйте позже.</p>';
+  }
 }

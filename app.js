@@ -24,7 +24,7 @@ class Game {
     this.languages = rowData[14] || '';
     this.description = rowData[15] || '';
     this.recordAuthor = rowData[16] || '';
-    this.images = rowData[17] ? rowData[17].split('\n').filter(url => url.trim()) : [];
+    this.images = rowData[17] ? rowData[17].split(/[\s\n]+/).filter(url => url.trim()) : [];
     this.analysisLink = rowData[18] || '';
   }
 }
